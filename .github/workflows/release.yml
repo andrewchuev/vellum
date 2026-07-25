@@ -5,6 +5,9 @@ on:
     types: [gitlab-push]
   workflow_dispatch:
 
+permissions:
+  contents: write # repo default is read-only; release creation needs write
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
