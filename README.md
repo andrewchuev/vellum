@@ -33,7 +33,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 - **Fast FB2 Engine**: Custom XmlPullParser-based streaming parser handles large books with minimal memory footprint; titles, subtitles, epigraphs, quotations and poems are all rendered.
 - **Support for .fb2 and .fb2.zip**: Open compressed books directly from your storage.
 - **PDF Reader**: Fixed-layout PDFs open in their own reader, powered by Pdfium (so it works the same on every Android version, including E-Ink devices without Google services). One page at a time, fit-to-width by default with in-page scrolling on tall pages, pinch and double-tap zoom, pan, tap zones and volume keys for turning pages. It has a real table of contents read from the document outline, full-text search with all matches highlighted on the page, **long-press a word to select it and look it up in a dictionary** (same flow as in FB2), "go to page", password-protected documents, **night mode** and **margin cropping** (zooms to the content of each page, a big win on small screens). Reading progress is remembered; title, author and a first-page cover come from the document. Storage scanning imports `.pdf` files next to FB2 books, and the format is detected from the file content, not its name.
-- **Offline English → Russian translation**: long-press a word in an FB2 book or a PDF to see its Russian translation with the part of speech and numbered senses, no network needed at reading time. Inflected forms find their base word (*running*, *children*, *went*, *don't* → *run*, *child*, *go*, *do*), and an ambiguous form shows every reading. The compact dictionary (about 1.1 MB, roughly 46,000 entries) is downloaded once, the first time you look a word up, verified against a pinned SHA-256 and unpacked into the app's private storage. Words in other scripts, and anything not found, can still be handed to any installed dictionary or translation app ("Other app").
+- **Offline English → Russian translation**: long-press a word in an FB2 book or a PDF to see its Russian translation with the part of speech and numbered senses, no network needed at reading time. Inflected forms find their base word (*running*, *children*, *went*, *don't* → *run*, *child*, *go*, *do*), and an ambiguous form shows every reading. The compact dictionary (about 1.5 MB, roughly 62,000 entries, 15,000 of them phrases) is downloaded once, the first time you look a word up, verified against a pinned SHA-256 and unpacked into the app's private storage. **Short phrases and idioms** are found too: the touched word is looked up together with its neighbors and the longest known phrase wins (*as well as*, *in order to*, *ran out of* → *run out of*, even when a PDF line wraps in the middle), shown first with the word itself below and the highlight grown over the whole phrase. A newer dictionary is offered as an update inside the lookup dialog, while the installed one keeps working. Words in other scripts, and anything not found, can still be handed to any installed dictionary or translation app ("Other app").
 - **Instant Loading & Background Pagination**: The book opens instantly (< 2ms) by calculating and rendering the current page first. Full pagination is calculated asynchronously in the background on a thread pool (`Dispatchers.Default`), ensuring zero UI lag.
 - **Justified Text Alignment**: Native full-width inter-word justification alignment (`Layout.JUSTIFICATION_MODE_INTER_WORD`) for clean and balanced layout on both edges.
 - **Library Management**: Persistent local library with covers, metadata, and reading progress tracking. Includes options for physical file deletion when removing books.
@@ -75,7 +75,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 - **Domain layer stays Android-free**; expected open failures use `BookOpenException`.
 - **Format routing**: `BookOpener` sniffs the file signature and picks the reader (`MainActivity` for FB2, `PdfReaderActivity` for PDF), so every entry point (library, file picker, last-opened book) handles both.
 - **PDF stack**: the reader depends on a small `PdfEngine`/`PdfSession` interface (Pdfium implementation, fakes in tests), `PdfViewport` holds all zoom/pan/scroll math as plain testable Kotlin, and `PdfPageView` renders only the visible region of a page into a viewport-sized bitmap on a background thread.
-- **Translation stack** (`translation/`): `EnglishLemmatizer` (irregular table plus suffix rules) proposes base forms, `SqliteDictionaryStore` reads the read-only SQLite dictionary, `WordTranslator` combines them, and `DictionaryInstaller` downloads, checks and atomically installs the file (cancellable, with typed failures). Everything is plain Kotlin behind small interfaces and is covered by JVM tests, including the real HTTP download against a local server.
+- **Translation stack** (`translation/`): `EnglishLemmatizer` (irregular table plus suffix rules) proposes base forms, `SqliteDictionaryStore` reads the read-only SQLite dictionary, `WordTranslator` combines them and searches phrases of up to five words that contain the touched word, `findWordContext` extracts the neighbors from FB2 or PDF text (including words hyphenated at a line end), and `DictionaryInstaller` downloads, checks and atomically installs the file (cancellable, with typed failures, and aware of the dictionary revision so older installs keep working until updated). Everything is plain Kotlin behind small interfaces and is covered by JVM tests, including the real HTTP download against a local server.
 - **Rendering**: `ReaderView` allocates nothing per frame, resolves theme colors once, and exposes `performClick()` for accessibility services.
 - **Modern platform APIs**: `WindowCompat`/`WindowInsetsControllerCompat` for immersive mode, AndroidX KTX helpers, `DateTimeFormatter`, `ActivityResultContracts` (including `CreateDocument`), and no obsolete `SDK_INT` checks or dead `READ_EXTERNAL_STORAGE`/`WAKE_LOCK` permissions.
 
@@ -87,6 +87,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 ## Known Limitations & Roadmap
 - **PDF text**: selection works per word (long-press); selecting a phrase or paragraph is not implemented yet. Scanned documents have no text layer, so selection and search find nothing in them (OCR is out of scope).
 - **Dictionary quality**: the data comes from FreeDict/WikDict (machine-extracted from Wiktionary), so coverage is broad but uneven — some function words are thin (articles are hand-written), a few entries contain suffix noise, and translations of common words may be listed in a non-obvious order. Only single words are translated, not phrases, and only English → Russian.
+- **Phrases**: only contiguous phrases of up to five words that the dictionary has are recognized; separated phrasal verbs (*turn the light off*) are not, and there is no translation of free-form phrases or sentences (use "Other app"). A PDF word hyphenated at a line end is joined without the hyphen, so a real compound broken there (*well-* / *known*) is looked up as *wellknown* and not found.
 - **Network permission**: the app declares `INTERNET` solely to download the dictionary once; nothing else is sent or received, and there are no analytics. The dictionary is a release asset (`dictionary-en-ru-*`) of the GitHub repository; until it is published, or when offline, the download fails with a clear message and "Other app" still works.
 - **APK size and ABIs**: Pdfium adds native libraries, so release builds are limited to `arm64-v8a` and `armeabi-v7a` (about 11 MB in total; E-Ink readers and phones are ARM). Release APKs therefore do not run on x86 devices; debug builds keep every ABI so the x86_64 emulator still works.
 - **Pdfium binding version**: `pdfiumandroid` 2.0.1 is pinned on purpose — 2.0.3 is built with Kotlin 2.4 metadata, which the Kotlin 2.2 compiler bundled with AGP cannot read. Upgrade both together.
@@ -104,11 +105,18 @@ The translations come from [FreeDict](https://freedict.org/) *eng-rus*, generate
 python tools/dictionary/build_dictionary.py
 ```
 
-The script downloads the pinned FreeDict release, keeps single-word headwords with their parts of speech and Russian
-senses, writes a SQLite database and gzips it deterministically. It prints the size and SHA-256, which go into
-`app/dictionary.properties` together with the download URL. Those values become `BuildConfig` fields; for local testing
-override them with `-PdictionaryUrl=... -PdictionarySha256=... -PdictionarySize=...` (debug builds allow cleartext HTTP to
-`10.0.2.2` and `localhost` only).
+The script downloads the pinned FreeDict release, keeps headwords of up to five words (single words and phrases) with
+their parts of speech and Russian senses, cleans Wiktionary link markup out of the translations, adds a short list of
+everyday phrases the source lacks, writes a SQLite database and gzips it deterministically. It prints the size and
+SHA-256, which go into `app/dictionary.properties` together with the download URL and the `revision`.
+
+The revision (`REVISION` in the script, `revision` in the properties file) names the installed file
+(`en-ru-r<N>.sqlite`; revision 1 keeps the original `en-ru.sqlite`). Bump it whenever the content changes: an app
+expecting a newer revision keeps using the older file and offers the update in the lookup dialog. Publish the
+gzip as a release asset first, then ship the app. Those values become `BuildConfig` fields; for local testing
+override them with `-PdictionaryUrl=... -PdictionarySha256=... -PdictionarySize=... -PdictionaryRevision=...`
+(debug builds allow cleartext HTTP to `10.0.2.2` and `localhost` only; `adb reverse tcp:8765 tcp:8765` makes a
+local server reachable as `localhost` from a real device).
 
 ## Technical Architecture
 
@@ -142,7 +150,7 @@ The project follows **Clean Architecture** principles to ensure maintainability 
 5. Filter or group your library by clicking the dropdown menus (e.g., group by Author or Series, or filter by Finished books).
 6. Open the **⋮** menu in the library and tap **Backup** to save your reading progress and preferences to a file of your choice, or **Restore** to pick a backup JSON file.
 7. Tap the center of the reader screen to open the **Menu**.
-8. Long-press a word to translate it. The first time you are asked to download the offline dictionary (about 1.1 MB).
+8. Long-press a word to translate it; if it belongs to a known phrase, the phrase is translated. The first time you are asked to download the offline dictionary (about 1.5 MB).
 9. Long-press any book in the **Library** to prompt options to delete only from library or physically delete from device.
 10. Use **Volume Buttons** or **Screen Edges** to navigate through pages.
 
