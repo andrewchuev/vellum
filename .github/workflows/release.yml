@@ -50,9 +50,11 @@ jobs:
           chmod +x gradlew
           ./gradlew testDebugUnitTest --console=plain
 
+      # versionCode must keep increasing across releases; earlier local builds already
+      # reached the 30s, so the run number is offset to stay above them.
       - name: Build signed release APK
         working-directory: source
-        run: ./gradlew assembleRelease --console=plain -PciBuildNumber=${{ github.run_number }}
+        run: ./gradlew assembleRelease --console=plain -PciBuildNumber=$((100 + ${{ github.run_number }}))
 
       - name: Locate build artifact and derive version
         id: build_info
@@ -64,6 +66,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub release
+        working-directory: source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
