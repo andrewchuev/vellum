@@ -28,6 +28,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 ## Key Features
 
 - **Optimized for E-Ink**: No animations, no gradients, pure black-on-white rendering.
+- **Screen timeout while reading**: both readers keep the display on while you read and release it after 5, 10 (default), 30 minutes without a touch or key press, or never ("Always"). Set it in the FB2 reader's *Display* tab or the PDF reader's menu (*Keep screen on*). After the release the system's own screen timeout applies, so the screen goes off no later than the longer of the two.
 - **Hardware Integration**: Custom support for Onyx Boox E-Ink screens (refresh modes, dual warm/cold brightness control).
 - **Universal Compatibility**: Works on any Android 11+ device thanks to an abstraction layer over hardware-specific SDKs.
 - **Fast FB2 Engine**: Custom XmlPullParser-based streaming parser handles large books with minimal memory footprint; titles, subtitles, epigraphs, quotations and poems are all rendered.
@@ -92,6 +93,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 - **APK size and ABIs**: Pdfium adds native libraries, so release builds are limited to `arm64-v8a` and `armeabi-v7a` (about 11 MB in total; E-Ink readers and phones are ARM). Release APKs therefore do not run on x86 devices; debug builds keep every ABI so the x86_64 emulator still works.
 - **Pdfium binding version**: `pdfiumandroid` 2.0.1 is pinned on purpose — 2.0.3 is built with Kotlin 2.4 metadata, which the Kotlin 2.2 compiler bundled with AGP cannot read. Upgrade both together.
 - **Target SDK 34**: raising it to the latest level enforces edge-to-edge rendering (the library screen needs window-inset handling) and predictive back; do it together with a visual pass on real devices.
+- **Screen timeout**: the app can only stop holding the screen on; it cannot force it off. If the system's screen timeout is longer than the chosen one, the system's value decides when the display turns off. Touches inside dialogs are not seen by the reader, so a dialog left open counts as idle time.
 - **All-files access** is still used for storage scanning and custom fonts in `/sdcard/Fonts`; migrating to a Storage Access Framework folder picker would remove that permission.
 - Covers created by older versions may still sit in the cache dir; they are not migrated and fall back to a placeholder if the system clears the cache (rescanning or reopening the book restores them).
 - Kotlin is provided by AGP's built-in Kotlin support (2.2.x); no separate Kotlin Gradle plugin is applied.
