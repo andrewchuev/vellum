@@ -84,7 +84,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 
 ## Known Limitations & Roadmap
 - **PDF text**: selection works per word (long-press); selecting a phrase or paragraph is not implemented yet. Scanned documents have no text layer, so selection and search find nothing in them (OCR is out of scope).
-- **APK size**: Pdfium adds about 18 MB of native libraries (four ABIs) to the universal APK; restricting release builds to `arm64-v8a` and `armeabi-v7a` would cut most of that for E-Ink devices.
+- **APK size and ABIs**: Pdfium adds native libraries, so release builds are limited to `arm64-v8a` and `armeabi-v7a` (about 11 MB in total; E-Ink readers and phones are ARM). Release APKs therefore do not run on x86 devices; debug builds keep every ABI so the x86_64 emulator still works.
 - **Pdfium binding version**: `pdfiumandroid` 2.0.1 is pinned on purpose — 2.0.3 is built with Kotlin 2.4 metadata, which the Kotlin 2.2 compiler bundled with AGP cannot read. Upgrade both together.
 - **Target SDK 34**: raising it to the latest level enforces edge-to-edge rendering (the library screen needs window-inset handling) and predictive back; do it together with a visual pass on real devices.
 - **All-files access** is still used for storage scanning and custom fonts in `/sdcard/Fonts`; migrating to a Storage Access Framework folder picker would remove that permission.
