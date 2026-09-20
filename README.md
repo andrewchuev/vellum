@@ -33,6 +33,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 - **Fast FB2 Engine**: Custom XmlPullParser-based streaming parser handles large books with minimal memory footprint; titles, subtitles, epigraphs, quotations and poems are all rendered.
 - **Support for .fb2 and .fb2.zip**: Open compressed books directly from your storage.
 - **PDF Reader**: Fixed-layout PDFs open in their own reader, powered by Pdfium (so it works the same on every Android version, including E-Ink devices without Google services). One page at a time, fit-to-width by default with in-page scrolling on tall pages, pinch and double-tap zoom, pan, tap zones and volume keys for turning pages. It has a real table of contents read from the document outline, full-text search with all matches highlighted on the page, **long-press a word to select it and look it up in a dictionary** (same flow as in FB2), "go to page", password-protected documents, **night mode** and **margin cropping** (zooms to the content of each page, a big win on small screens). Reading progress is remembered; title, author and a first-page cover come from the document. Storage scanning imports `.pdf` files next to FB2 books, and the format is detected from the file content, not its name.
+- **Offline English → Russian translation**: long-press a word in an FB2 book or a PDF to see its Russian translation with the part of speech and numbered senses, no network needed at reading time. Inflected forms find their base word (*running*, *children*, *went*, *don't* → *run*, *child*, *go*, *do*), and an ambiguous form shows every reading. The compact dictionary (about 1.1 MB, roughly 46,000 entries) is downloaded once, the first time you look a word up, verified against a pinned SHA-256 and unpacked into the app's private storage. Words in other scripts, and anything not found, can still be handed to any installed dictionary or translation app ("Other app").
 - **Instant Loading & Background Pagination**: The book opens instantly (< 2ms) by calculating and rendering the current page first. Full pagination is calculated asynchronously in the background on a thread pool (`Dispatchers.Default`), ensuring zero UI lag.
 - **Justified Text Alignment**: Native full-width inter-word justification alignment (`Layout.JUSTIFICATION_MODE_INTER_WORD`) for clean and balanced layout on both edges.
 - **Library Management**: Persistent local library with covers, metadata, and reading progress tracking. Includes options for physical file deletion when removing books.
@@ -74,6 +75,7 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 - **Domain layer stays Android-free**; expected open failures use `BookOpenException`.
 - **Format routing**: `BookOpener` sniffs the file signature and picks the reader (`MainActivity` for FB2, `PdfReaderActivity` for PDF), so every entry point (library, file picker, last-opened book) handles both.
 - **PDF stack**: the reader depends on a small `PdfEngine`/`PdfSession` interface (Pdfium implementation, fakes in tests), `PdfViewport` holds all zoom/pan/scroll math as plain testable Kotlin, and `PdfPageView` renders only the visible region of a page into a viewport-sized bitmap on a background thread.
+- **Translation stack** (`translation/`): `EnglishLemmatizer` (irregular table plus suffix rules) proposes base forms, `SqliteDictionaryStore` reads the read-only SQLite dictionary, `WordTranslator` combines them, and `DictionaryInstaller` downloads, checks and atomically installs the file (cancellable, with typed failures). Everything is plain Kotlin behind small interfaces and is covered by JVM tests, including the real HTTP download against a local server.
 - **Rendering**: `ReaderView` allocates nothing per frame, resolves theme colors once, and exposes `performClick()` for accessibility services.
 - **Modern platform APIs**: `WindowCompat`/`WindowInsetsControllerCompat` for immersive mode, AndroidX KTX helpers, `DateTimeFormatter`, `ActivityResultContracts` (including `CreateDocument`), and no obsolete `SDK_INT` checks or dead `READ_EXTERNAL_STORAGE`/`WAKE_LOCK` permissions.
 
@@ -84,12 +86,29 @@ A minimalist, high-performance FB2 ebook reader optimized specifically for **E-I
 
 ## Known Limitations & Roadmap
 - **PDF text**: selection works per word (long-press); selecting a phrase or paragraph is not implemented yet. Scanned documents have no text layer, so selection and search find nothing in them (OCR is out of scope).
+- **Dictionary quality**: the data comes from FreeDict/WikDict (machine-extracted from Wiktionary), so coverage is broad but uneven — some function words are thin (articles are hand-written), a few entries contain suffix noise, and translations of common words may be listed in a non-obvious order. Only single words are translated, not phrases, and only English → Russian.
+- **Network permission**: the app declares `INTERNET` solely to download the dictionary once; nothing else is sent or received, and there are no analytics. The dictionary is a release asset (`dictionary-en-ru-*`) of the GitHub repository; until it is published, or when offline, the download fails with a clear message and "Other app" still works.
 - **APK size and ABIs**: Pdfium adds native libraries, so release builds are limited to `arm64-v8a` and `armeabi-v7a` (about 11 MB in total; E-Ink readers and phones are ARM). Release APKs therefore do not run on x86 devices; debug builds keep every ABI so the x86_64 emulator still works.
 - **Pdfium binding version**: `pdfiumandroid` 2.0.1 is pinned on purpose — 2.0.3 is built with Kotlin 2.4 metadata, which the Kotlin 2.2 compiler bundled with AGP cannot read. Upgrade both together.
 - **Target SDK 34**: raising it to the latest level enforces edge-to-edge rendering (the library screen needs window-inset handling) and predictive back; do it together with a visual pass on real devices.
 - **All-files access** is still used for storage scanning and custom fonts in `/sdcard/Fonts`; migrating to a Storage Access Framework folder picker would remove that permission.
 - Covers created by older versions may still sit in the cache dir; they are not migrated and fall back to a placeholder if the system clears the cache (rescanning or reopening the book restores them).
 - Kotlin is provided by AGP's built-in Kotlin support (2.2.x); no separate Kotlin Gradle plugin is applied.
+
+## Dictionary Data & Licensing
+
+The translations come from [FreeDict](https://freedict.org/) *eng-rus*, generated by WikDict from Wiktionary and licensed
+**CC BY-SA 3.0**; the app shows this credit in the lookup dialog. The dictionary is built reproducibly:
+
+```bash
+python tools/dictionary/build_dictionary.py
+```
+
+The script downloads the pinned FreeDict release, keeps single-word headwords with their parts of speech and Russian
+senses, writes a SQLite database and gzips it deterministically. It prints the size and SHA-256, which go into
+`app/dictionary.properties` together with the download URL. Those values become `BuildConfig` fields; for local testing
+override them with `-PdictionaryUrl=... -PdictionarySha256=... -PdictionarySize=...` (debug builds allow cleartext HTTP to
+`10.0.2.2` and `localhost` only).
 
 ## Technical Architecture
 
@@ -107,6 +126,7 @@ The project follows **Clean Architecture** principles to ensure maintainability 
 - **Concurrency**: Kotlin Coroutines & Flow
 - **Persistence**: Room 2.8 (SQLite) with exported schemas
 - **PDF**: Pdfium via `io.legere:pdfiumandroid`
+- **Dictionary**: FreeDict eng-rus (CC BY-SA 3.0) compiled to a compact SQLite file by `tools/dictionary/build_dictionary.py`
 - **UI**: Native Android Canvas + StaticLayout (No WebView), ViewBinding for dialogs/Activities
 - **Testing**: JUnit4 + Robolectric + kotlinx-coroutines-test — parser, pagination, library list logic, settings, backup, scanner and both ViewModels (including an end-to-end open → paginate → restyle run)
 - **Build System**: Gradle 9.7 + Android Gradle Plugin 9.4 with a Version Catalog for centralized dependency management; dependencies tracked against current stable releases
@@ -122,8 +142,9 @@ The project follows **Clean Architecture** principles to ensure maintainability 
 5. Filter or group your library by clicking the dropdown menus (e.g., group by Author or Series, or filter by Finished books).
 6. Open the **⋮** menu in the library and tap **Backup** to save your reading progress and preferences to a file of your choice, or **Restore** to pick a backup JSON file.
 7. Tap the center of the reader screen to open the **Menu**.
-8. Long-press any book in the **Library** to prompt options to delete only from library or physically delete from device.
-8. Use **Volume Buttons** or **Screen Edges** to navigate through pages.
+8. Long-press a word to translate it. The first time you are asked to download the offline dictionary (about 1.1 MB).
+9. Long-press any book in the **Library** to prompt options to delete only from library or physically delete from device.
+10. Use **Volume Buttons** or **Screen Edges** to navigate through pages.
 
 ---
 *Created with focus on simplicity and reading comfort.*
