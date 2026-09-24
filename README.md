@@ -2,171 +2,62 @@
 
 [![Download Latest Release](https://img.shields.io/github/v/release/andrewchuev/vellum?style=for-the-badge&label=Download&color=blue)](https://github.com/andrewchuev/vellum/releases/latest)
 
-A minimalist, high-performance FB2 ebook reader optimized specifically for **E-Ink devices** (like Onyx Boox Page). Built from scratch with a focus on speed, high contrast, and battery efficiency.
+**A calm FB2 and PDF reader for Android, made for E-Ink screens and just as good on any phone or tablet.**
+Pure high-contrast pages, no animations, and an English → Russian dictionary and sentence translator that work offline, right where you read.
 
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/library.png" width="30%" title="Library View" alt="Library View" />
-  <img src="screenshots/empty_state.png" width="30%" title="Empty State View" alt="Empty State View" />
-  <img src="screenshots/reader.png" width="30%" title="Reader View" alt="Reader View" />
+  <img src="screenshots/library.png" width="30%" title="Library" alt="Library" />
+  <img src="screenshots/reader.png" width="30%" title="Reader" alt="Reader" />
+  <img src="screenshots/reader_menu.png" width="30%" title="Reader menu" alt="Reader menu" />
 </p>
 
-<p align="center">
-  <img src="screenshots/reader_menu.png" width="30%" title="Reader Menu" alt="Reader Menu" />
-  <img src="screenshots/gestures_guide.png" width="30%" title="Gestures Guide Dialog" alt="Gestures Guide Dialog" />
-</p>
+## Highlights
 
-* **Library View**: Shows cover images, titles, authors, read progress, and book series information. Built with Material Design Exposed Dropdown menus.
-* **Empty State View**: Displays a clean book vector illustration when the library or search result list is empty.
-* **Reader View**: Pure, distraction-free high-contrast reading text layout with clock and progress details in the bottom status bar.
-* **Reader Menu**: Configurable font, layout, theme, and mode options.
-* **Gestures Guide Dialog**: On-demand overlay detailing all tap, swipe, and touch shortcuts.
+**Read comfortably**
+- **FB2, FB2.ZIP and PDF** in one library, with covers, authors, series and reading progress.
+- **Built for E-Ink**: no animations or gradients, anti-ghosting refresh, dedicated support for Onyx Boox screens (refresh modes, warm and cold backlight), and it works the same on any Android 11+ device.
+- **A real PDF reader** on Pdfium: table of contents, full-text search with highlighted matches, pinch and double-tap zoom that fits the text column to your screen, margin cropping that makes small-screen reading pleasant, night mode, password-protected files.
+- **Your book, your way**: fonts (including your own `.ttf` / `.otf`), sizes, spacing, margins, justified text, Light / Sepia / Dark themes, remembered per book. Bookmarks, footnotes, in-book search and a table of contents.
+- **Gentle on the battery**: choose how long the screen stays on while you read (5, 10 or 30 minutes, or always).
 
----
+**Look up and translate as you read**
+- **Long-press a word** to get its Russian translation with parts of speech and senses, from a compact **offline dictionary** (about 78,000 entries, including 15,000 phrases and idioms). It understands word forms (*running*, *children*, *went* → *run*, *child*, *go*).
+- **Phrases**: *as well as*, *in order to*, *ran out of* are recognized automatically; tap the words around your finger to select a different phrase yourself.
+- **Whole sentences** (`mlkit` edition): press **Translate with Google** to translate the sentence around the word, on the device, without sending your text anywhere.
+- Words the dictionary doesn't know can be passed to any dictionary app you have installed.
 
-## Key Features
+**Yours to keep**
+- **Backup and restore** your reading progress and preferences to a file you choose.
+- A fast, private library: everything stays on your device.
 
-- **Optimized for E-Ink**: No animations, no gradients, pure black-on-white rendering.
-- **Screen timeout while reading**: both readers keep the display on while you read and release it after 5, 10 (default), 30 minutes without a touch or key press, or never ("Always"). Set it in the FB2 reader's *Display* tab or the PDF reader's menu (*Keep screen on*). After the release the system's own screen timeout applies, so the screen goes off no later than the longer of the two.
-- **Hardware Integration**: Custom support for Onyx Boox E-Ink screens (refresh modes, dual warm/cold brightness control).
-- **Universal Compatibility**: Works on any Android 11+ device thanks to an abstraction layer over hardware-specific SDKs.
-- **Fast FB2 Engine**: Custom XmlPullParser-based streaming parser handles large books with minimal memory footprint; titles, subtitles, epigraphs, quotations and poems are all rendered.
-- **Support for .fb2 and .fb2.zip**: Open compressed books directly from your storage.
-- **PDF Reader**: Fixed-layout PDFs open in their own reader, powered by Pdfium (so it works the same on every Android version, including E-Ink devices without Google services). One page at a time, fit-to-width by default with in-page scrolling on tall pages, pinch zoom and double-tap (fits the text column under your finger to the screen width, so lines never run off the sides; a second double-tap returns to fit-width), pan, tap zones and volume keys for turning pages. It has a real table of contents read from the document outline, full-text search with all matches highlighted on the page, **long-press a word to select it and look it up in a dictionary** (same flow as in FB2), "go to page", password-protected documents, **night mode** and **margin cropping** (zooms to the content of each page, a big win on small screens; a page with only a title or a few short lines is never zoomed past 60% of the page width, so sparse pages are not blown up). Reading progress is remembered; title, author and a first-page cover come from the document. Storage scanning imports `.pdf` files next to FB2 books, and the format is detected from the file content, not its name.
-- **Sentence translation (main, `mlkit` edition)**: below the dictionary article the lookup dialog shows the whole sentence the pressed word is in (found across abbreviations like *Mr.* and *e.g.*, initials, quotes, paragraph ends in FB2, wrapped lines and hyphenated words in PDF) and a **Translate with Google** button. It uses Google ML Kit's on-device translation: a one-time download of about 41 MB, then it works offline and the text never leaves the device. It is a fast "what is this sentence about" aid, not a literary translator: in tests on a Snapdragon 8 Gen 3 tablet it took tens of milliseconds per sentence but stumbled on idioms and complex syntax, and it translates single words worse than the dictionary, which stays the main tool for words and phrases.
-- **Offline English → Russian translation**: long-press a word in an FB2 book or a PDF to see its Russian translation with the part of speech and numbered senses, no network needed at reading time. Inflected forms find their base word (*running*, *children*, *went*, *don't* → *run*, *child*, *go*, *do*), and an ambiguous form shows every reading. The compact dictionary (about 1.8 MB, roughly 78,000 entries, 15,000 of them phrases) is downloaded once, the first time you look a word up, verified against a pinned SHA-256 and unpacked into the app's private storage. **Short phrases and idioms** are found too: the touched word is looked up together with its neighbors and the longest known phrase wins (*as well as*, *in order to*, *ran out of* → *run out of*, even when a PDF line wraps in the middle), shown first with the word itself below and the highlight grown over the whole phrase. **Select several words by hand** when the automatic search misses a phrase: the dialog shows the words around the one you pressed as chips, and tapping them changes the selection (a word outside extends it, an end word drops out, an inner word narrows it to itself); the highlight in the text follows. A selection without an entry of its own is translated word by word. British and American spellings both work (*colour*/*color*, *organise*/*organize*). A newer dictionary is offered as an update inside the lookup dialog, while the installed one keeps working. Words in other scripts, and anything not found, can still be handed to any installed dictionary or translation app ("Other app").
-- **Instant Loading & Background Pagination**: The book opens instantly (< 2ms) by calculating and rendering the current page first. Full pagination is calculated asynchronously in the background on a thread pool (`Dispatchers.Default`), ensuring zero UI lag.
-- **Justified Text Alignment**: Native full-width inter-word justification alignment (`Layout.JUSTIFICATION_MODE_INTER_WORD`) for clean and balanced layout on both edges.
-- **Library Management**: Persistent local library with covers, metadata, and reading progress tracking. Includes options for physical file deletion when removing books.
-- **Folder-Specific Scanning**: Multi-choice checklist dialog during storage scan to target specific folders (`Books`, `Download`, `Documents`) or scan the entire device.
-- **Backup & Restore**: Export your per-book preferences and reading progress to a JSON file at a location of your choice (system file picker), and restore it later onto the books present in your library.
-- **Automated Book Scanner**: Background storage scanner recursively searches external storage for `.fb2` and `.zip` files, extracts metadata, saves cover images, and registers books to the library, automatically skipping duplicates.
-- **E-Ink Friendly Grouping & Filtering**: Group books by **Authors** and **Series/Sequences** using alphabetical navigation folders. Sort books in a series by sequence order, and filter library lists instantly by status (**Reading**, **Unread**, **Finished**).
-- **Reactive UI**: Library updates automatically using Kotlin Coroutines Flow when books are added, opened, or scanned.
-- **Per-Book Settings**: Remembers font size, line spacing, font family, and margins individually for every book. Font size and spacing changes render instantly on screen without blocking loading dialogs.
-- **Navigation Options**:
-    - **Physical Buttons**: Use volume keys to turn pages.
-    - **Touch Zones**: Left/Right sides for paging, Center for menu.
-- **Footnotes & Bookmarks**:
-    - **Footnotes**: View annotations and author notes in a popup without leaving the current page.
-    - **Bookmarks**: Save bookmarks at any position, listed in a modern dialog with dividers, padding, and styled high-contrast controls.
-- **Dictionary Lookup Integration**: Long-press any word in the book to highlight it and look it up instantly using standard Android dictionary/translation intents (works with ColorDict, GoldenDict, etc.).
-- **Custom Fonts Support**: Scan and load external `.ttf` or `.otf` fonts dynamically from `/sdcard/Fonts` directory.
-- **Full-Text Search**: Search for words or phrases inside the currently open book, preview matching snippets, jump to the matches, and view highlighted occurrences on screen.
-- **Advanced E-Ink Anti-Ghosting**: Full-screen updates are triggered after page turns and automatically on all dialog dismissals to instantly clear ghosting outlines and artifacts.
-- **Night Mode**: Software-level color inversion for comfortable low-light reading.
+## Download
 
-## Engineering Notes
+Get the latest APK from **[Releases](https://github.com/andrewchuev/vellum/releases/latest)**. Every release has two editions:
 
-### Reliability
-- **Thread-safe pagination**: `PaginationController` works on a private copy of the text paint and is otherwise stateless, so a background pass can no longer race with UI changes. The pass is cooperatively cancellable, and the table of contents is derived from the book itself (available immediately, no duplicates).
-- **Layout matches rendering**: pagination honours the selected line spacing (it used to assume 1.2 always, which clipped text at larger spacings), and reading progress is not overwritten with a bogus 100% while pagination is still in progress.
-- **No content loss**: subtitles, epigraphs, quotations and poem lines are now laid out and displayed; previously they were parsed and searchable, but never shown.
-- **Durable covers**: covers live in app-private storage (`filesDir/covers`) instead of the cache dir the system may purge, are downsampled while decoding (bounded memory for huge images), and are removed together with their book.
-- **Safe database evolution**: Room schemas are exported (`app/schemas`), and destructive fallback applies only to the pre-export legacy versions, so a future schema change without a `Migration` fails loudly instead of silently wiping progress and bookmarks.
-- **Backup through the system file picker (SAF)**: no more writing into `/sdcard/Download` (which silently failed without all-files access). Unset per-book preferences stay unset after a restore, a zero margin survives a round trip, and one malformed entry no longer aborts the whole restore.
-- **Lifecycle correctness**: rotating the screen no longer re-parses the book (the ViewModel re-lays it out for the new size), the opening/scan/backup dialogs are state-driven and never leak windows, the clock/battery ticker only runs while the screen is visible, and input streams are closed.
-- **Responsive search**: book search runs off the main thread (results capped at 500); highlighting moved into `ReaderView`.
+| Edition | Size | Choose it if |
+|---|---|---|
+| **`mlkit`** (recommended) | ~40 MB | you want sentence translation as well as the dictionary |
+| **`basic`** | ~11 MB | you want the smallest install with no closed-source components |
 
-### Architecture
-- **MVVM with state-driven UI**: `ReaderViewModel` and `LibraryViewModel` (`AndroidViewModel`s built with the `viewModelFactory { initializer { } }` DSL) expose `StateFlow` state plus one-off events. ViewModels no longer format user-facing strings: events carry string resource ids, and scan/backup outcomes are typed (`ScanState`, `BackupResult`).
-- **Pure, tested list logic**: library filtering/grouping lives in `buildLibraryItems()`, a plain function covered by fast JVM tests.
-- **Shared building blocks**: `CoverStorage`, `BitmapDecoder`, `FontChoice.toTypeface()` and `ReadingTheme.effective()` replace logic that used to be duplicated across the scanner, reader and views.
-- **Single composition root**: `AppContainer` (held by `VellumApplication`) wires everything; no DI framework, proportionate to the app size.
-- **Domain layer stays Android-free**; expected open failures use `BookOpenException`.
-- **Format routing**: `BookOpener` sniffs the file signature and picks the reader (`MainActivity` for FB2, `PdfReaderActivity` for PDF), so every entry point (library, file picker, last-opened book) handles both.
-- **PDF stack**: the reader depends on a small `PdfEngine`/`PdfSession` interface (Pdfium implementation, fakes in tests), `PdfViewport` holds all zoom/pan/scroll math as plain testable Kotlin, and `PdfPageView` renders only the visible region of a page into a viewport-sized bitmap on a background thread.
-- **Translation stack** (`translation/`): `EnglishLemmatizer` (irregular table plus suffix rules) proposes base forms, `SqliteDictionaryStore` reads the read-only SQLite dictionary, `WordTranslator` combines them and searches phrases of up to five words that contain the touched word (or, for a manual selection, exactly the selected words, falling back to word by word), `findWordContext` extracts the neighbors from FB2 or PDF text (including words hyphenated at a line end), and `DictionaryInstaller` downloads, checks and atomically installs the file (cancellable, with typed failures, and aware of the dictionary revision so older installs keep working until updated). Everything is plain Kotlin behind small interfaces and is covered by JVM tests, including the real HTTP download against a local server.
-- **Rendering**: `ReaderView` allocates nothing per frame, resolves theme colors once, and exposes `performClick()` for accessibility services.
-- **Modern platform APIs**: `WindowCompat`/`WindowInsetsControllerCompat` for immersive mode, AndroidX KTX helpers, `DateTimeFormatter`, `ActivityResultContracts` (including `CreateDocument`), and no obsolete `SDK_INT` checks or dead `READ_EXTERNAL_STORAGE`/`WAKE_LOCK` permissions.
+Requires **Android 11 or newer** on an ARM device (nearly all phones, tablets and E-Ink readers).
 
-### Performance
-- **Image dithering**: Floyd-Steinberg runs on a flat `IntArray` with batch `getPixels`/`setPixels`, on covers already downsampled to at most ~600x900.
-- **RecyclerView**: `ListAdapter` + `DiffUtil`, lifecycle-bound cover loading, per-size `LruCache` entries and job cancellation on recycle.
-- **Dynamic anti-aliasing**: enabled on regular screens, disabled when E-Ink optimization is active.
+## Getting started
 
-## Known Limitations & Roadmap
-- **PDF text**: selection works per word (long-press); selecting a phrase or paragraph is not implemented yet. Scanned documents have no text layer, so selection and search find nothing in them (OCR is out of scope).
-- **Dictionary quality**: the data comes from FreeDict/WikDict (machine-extracted from Wiktionary), so coverage is broad but uneven — some function words are thin (articles are hand-written), a few entries contain suffix noise, and translations of common words may be listed in a non-obvious order. Words that only exist in the reversed Russian → English data (about 16,000, mostly rarer words and technical terms) have a single short list of translations without senses and may be narrower than the everyday meaning. Proper nouns, abbreviations and brand names are largely missing. Only English → Russian.
-- **Selecting words**: the chips cover up to four words on each side of the pressed one and stop at punctuation, so a phrase that spans a comma or a sentence end can't be selected; drag handles are not implemented. **Phrases**: only contiguous phrases of up to five words that the dictionary has are recognized; separated phrasal verbs (*turn the light off*) are not, and there is no translation of free-form phrases or sentences (use "Other app"). A PDF word hyphenated at a line end is joined without the hyphen, so a real compound broken there (*well-* / *known*) is looked up as *wellknown* and not found.
-- **Two editions**: `mlkit` is the main one, with sentence translation; every release ships it together with `basic`, which has no closed-source dependencies and no sentence translation. The `mlkit` edition adds Google ML Kit (about +28 MB of native libraries), so its APK is roughly 40 MB instead of 11 MB. ML Kit's terms require Google attribution next to its results (shown under every translation), restrict it to phones, tablets and computers (not embedded devices), and it may contact Google servers to update its models; whether it works on devices without Google Play services is untested. Sentence translation quality is that of ML Kit: fine for gist, unreliable for idioms.
-- **Network permission**: the app declares `INTERNET` solely to download the dictionary once; nothing else is sent or received, and there are no analytics. The dictionary is a release asset (`dictionary-en-ru-*`) of the GitHub repository; until it is published, or when offline, the download fails with a clear message and "Other app" still works.
-- **APK size and ABIs**: Pdfium adds native libraries, so release builds are limited to `arm64-v8a` and `armeabi-v7a` (about 11 MB in total; E-Ink readers and phones are ARM). Release APKs therefore do not run on x86 devices; debug builds keep every ABI so the x86_64 emulator still works.
-- **Pdfium binding version**: `pdfiumandroid` 2.0.1 is pinned on purpose — 2.0.3 is built with Kotlin 2.4 metadata, which the Kotlin 2.2 compiler bundled with AGP cannot read. Upgrade both together.
-- **Target SDK 34**: raising it to the latest level enforces edge-to-edge rendering (the library screen needs window-inset handling) and predictive back; do it together with a visual pass on real devices.
-- **Screen timeout**: the app can only stop holding the screen on; it cannot force it off. If the system's screen timeout is longer than the chosen one, the system's value decides when the display turns off. Touches inside dialogs are not seen by the reader, so a dialog left open counts as idle time.
-- **All-files access** is still used for storage scanning and custom fonts in `/sdcard/Fonts`; migrating to a Storage Access Framework folder picker would remove that permission.
-- Covers created by older versions may still sit in the cache dir; they are not migrated and fall back to a placeholder if the system clears the cache (rescanning or reopening the book restores them).
-- Kotlin is provided by AGP's built-in Kotlin support (2.2.x); no separate Kotlin Gradle plugin is applied.
+1. Open **Vellum** and tap **Scan Storage** (or **Open New Book**) to add your FB2 and PDF files. Android will ask for "All files access" so it can find them.
+2. Tap a book to read. **Tap the center** for the menu; tap the **left / right sides** or use the **volume keys** to turn pages.
+3. **Long-press a word** to translate it. The first time, the app offers to download the dictionary (about 1.8 MB); the `mlkit` edition also offers the sentence models (about 41 MB) when you first ask for a sentence.
 
-## Dictionary Data & Licensing
+## Privacy
 
-The translations come from [FreeDict](https://freedict.org/) *eng-rus* and *rus-eng*, generated by WikDict from Wiktionary and licensed
-**CC BY-SA 3.0**; the app shows this credit in the lookup dialog. The two directions end up in one SQLite file, built reproducibly:
+Your books, notes and reading history never leave your device and there are no analytics. The app asks for internet access only to download the dictionary once and, in the `mlkit` edition, Google's translation models once. After that, reading and translating work offline.
 
-```bash
-python tools/dictionary/build_dictionary.py
-```
+## Credits and licenses
 
-The script downloads the pinned FreeDict releases and keeps, from *eng-rus*, headwords of up to five words (single
-words and phrases) with their parts of speech and Russian senses, cleaning Wiktionary link markup out of the
-translations and adding a short list of everyday phrases the source lacks. *rus-eng* is then read backwards: a
-Russian entry glossed "specify" says that "specify" translates to it, which fills the words *eng-rus* has no article
-for. Only single English words are taken from it (glosses that are phrases or explanations are ignored), the base
-always wins, and Russian proper nouns, possessives and glosses of other scripts are dropped. Finally the other
-British/American spelling of every headword is added when it is missing. The result is a SQLite database, gzipped
-deterministically. The script prints the size and SHA-256, which go into `app/dictionary.properties` together with
-the download URL and the `revision`. Its tests run without a network:
-
-```bash
-python -m unittest discover -s tools/dictionary
-```
-
-The revision (`REVISION` in the script, `revision` in the properties file) names the installed file
-(`en-ru-r<N>.sqlite`; revision 1 keeps the original `en-ru.sqlite`). Bump it whenever the content changes: an app
-expecting a newer revision keeps using the older file and offers the update in the lookup dialog. Publish the
-gzip as a release asset first, then ship the app. Those values become `BuildConfig` fields; for local testing
-override them with `-PdictionaryUrl=... -PdictionarySha256=... -PdictionarySize=... -PdictionaryRevision=...`
-(debug builds allow cleartext HTTP to `10.0.2.2` and `localhost` only; `adb reverse tcp:8765 tcp:8765` makes a
-local server reachable as `localhost` from a real device).
-
-## Technical Architecture
-
-The project follows **Clean Architecture** principles to ensure maintainability and testability:
-
-- **Domain Layer**: Contains business logic, models (`Book`), and repository interfaces.
-- **Data Layer**: Implements repositories using Room Database for persistence and a custom FB2 parser.
-- **Logic Layer**: Handles complex tasks like asynchronous pagination, storage scanning, and hardware-specific E-Ink management.
-- **UI Layer**: MVVM pattern throughout — `LibraryViewModel` and `ReaderViewModel`, both `StateFlow`-driven, with ViewBinding-based Activities.
-- **Dependency Injection**: A single lightweight `AppContainer` (held by `VellumApplication`) is the composition root for both Activities — no DI framework, proportionate to the app's size.
-
-## Technical Stack
-
-- **Language**: Kotlin 2.2 (compiled via AGP's built-in Kotlin support — no separate Kotlin Gradle plugin), KSP 2.3
-- **Concurrency**: Kotlin Coroutines & Flow
-- **Persistence**: Room 2.8 (SQLite) with exported schemas
-- **PDF**: Pdfium via `io.legere:pdfiumandroid`
-- **Dictionary**: FreeDict eng-rus (CC BY-SA 3.0) compiled to a compact SQLite file by `tools/dictionary/build_dictionary.py`
-- **UI**: Native Android Canvas + StaticLayout (No WebView), ViewBinding for dialogs/Activities
-- **Testing**: JUnit4 + Robolectric + kotlinx-coroutines-test — parser, pagination, library list logic, settings, backup, scanner and both ViewModels (including an end-to-end open → paginate → restyle run)
-- **Editions**: two product flavors, `mlkit` (the main one) and `basic` (`./gradlew assembleBasicRelease` / `assembleMlkitRelease`). Sentence translation sits behind a small `SentenceEngine` interface, implemented only in the `mlkit` source set (`SentenceEngineFactory` returns `null` in `basic`), so another engine can be added without touching the dialog. Unit tests run for both (`./gradlew testDebugUnitTest`); `-PappIdSuffix=.dev` installs a debug build next to a release one.
-- **Build System**: Gradle 9.7 + Android Gradle Plugin 9.4 with a Version Catalog for centralized dependency management; dependencies tracked against current stable releases
-- **Min SDK**: 30 (Android 11)
-- **Target SDK**: 34
-
-## How to Use
-
-1. Launch **Vellum**.
-2. The **Library** shows your recently opened books.
-3. Tap **Scan Storage** to search targeted folders (e.g. `Books`, `Download`, `Documents`) or the entire device for FB2 books. (Requires granting "All Files Access" permission on Android 11+).
-4. Tap **Open New Book** to manually select a specific FB2, ZIP or PDF file using the system file picker.
-5. Filter or group your library by clicking the dropdown menus (e.g., group by Author or Series, or filter by Finished books).
-6. Open the **⋮** menu in the library and tap **Backup** to save your reading progress and preferences to a file of your choice, or **Restore** to pick a backup JSON file.
-7. Tap the center of the reader screen to open the **Menu**.
-8. Long-press a word to translate it; if it belongs to a known phrase, the phrase is translated. Tap the word chips in the dialog to select a different phrase. The first time you are asked to download the offline dictionary (about 1.8 MB).
-9. Long-press any book in the **Library** to prompt options to delete only from library or physically delete from device.
-10. Use **Volume Buttons** or **Screen Edges** to navigate through pages.
+- **Dictionary data**: [FreeDict](https://freedict.org/) *eng-rus* and *rus-eng*, generated by WikDict from Wiktionary, licensed **CC BY-SA 3.0**. Credit is shown in the lookup dialog.
+- **Sentence translation** (`mlkit` edition): Google ML Kit on-device translation. It is intended for casual, everyday text and is not a literary translator; translations carry Google's attribution.
+- **PDF rendering**: [Pdfium](https://pdfium.googlesource.com/pdfium/) through the `pdfiumandroid` library.
 
 ---
 *Created with focus on simplicity and reading comfort.*
