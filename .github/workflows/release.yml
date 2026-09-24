@@ -44,6 +44,7 @@ jobs:
           RELEASE_KEY_PASSWORD=$RELEASE_KEY_PASSWORD
           EOF
 
+      # Runs the unit tests of both editions (testDebugUnitTest is an alias for testBasic... and testMlkit...).
       - name: Run unit tests
         working-directory: source
         run: |
@@ -52,27 +53,47 @@ jobs:
 
       # versionCode must keep increasing across releases; earlier local builds already
       # reached the 30s, so the run number is offset to stay above them.
-      - name: Build signed release APK
+      # Two editions are built: "mlkit" (the main one, with on-device sentence translation)
+      # and "basic" (the offline dictionary only, no closed-source dependencies).
+      - name: Build signed release APKs
         working-directory: source
         run: ./gradlew assembleRelease --console=plain -PciBuildNumber=$((100 + ${{ github.run_number }}))
 
-      - name: Locate build artifact and derive version
+      - name: Locate build artifacts and derive version
         id: build_info
         working-directory: source
         run: |
-          APK_PATH=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
-          VERSION=$(basename "$APK_PATH" | sed -E 's/Vellum-(v[0-9.]+-build[0-9]+)-release\.apk/\1/')
-          echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          MLKIT_APK=$(find app/build/outputs/apk/mlkit/release -name '*.apk' | head -1)
+          BASIC_APK=$(find app/build/outputs/apk/basic/release -name '*.apk' | head -1)
+          if [ -z "$MLKIT_APK" ] || [ -z "$BASIC_APK" ]; then
+            echo "Expected one release APK per edition, found: mlkit='$MLKIT_APK' basic='$BASIC_APK'" >&2
+            exit 1
+          fi
+          VERSION=$(basename "$MLKIT_APK" | sed -E 's/Vellum-(v[0-9.]+-build[0-9]+)-mlkit-release\.apk/\1/')
+          case "$VERSION" in
+            v*-build*) ;;
+            *) echo "Could not derive the version from $MLKIT_APK" >&2; exit 1 ;;
+          esac
+          echo "mlkit_apk=$MLKIT_APK" >> "$GITHUB_OUTPUT"
+          echo "basic_apk=$BASIC_APK" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub release
         working-directory: source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ github.event.client_payload.sha || 'manual trigger' }}
         run: |
+          cat > notes.md <<EOF
+          Automated build from GitLab commit ${SOURCE_SHA}.
+
+          - **mlkit** (recommended): the offline dictionary plus on-device sentence translation with Google ML Kit. About 40 MB.
+          - **basic**: the offline dictionary only, with no closed-source dependencies. About 11 MB.
+          EOF
           gh release create "${{ steps.build_info.outputs.version }}" \
-            "${{ steps.build_info.outputs.apk_path }}" \
+            "${{ steps.build_info.outputs.mlkit_apk }}" \
+            "${{ steps.build_info.outputs.basic_apk }}" \
             --repo andrewchuev/vellum \
             --title "Vellum ${{ steps.build_info.outputs.version }}" \
-            --notes "Automated build from GitLab commit ${{ github.event.client_payload.sha || 'manual trigger' }}." \
+            --notes-file notes.md \
             --latest
