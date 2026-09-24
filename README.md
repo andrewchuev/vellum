@@ -10,8 +10,22 @@ Pure high-contrast pages, no animations, and an English → Russian dictionary a
 <p align="center">
   <img src="screenshots/library.png" width="30%" title="Library" alt="Library" />
   <img src="screenshots/reader.png" width="30%" title="Reader" alt="Reader" />
-  <img src="screenshots/reader_menu.png" width="30%" title="Reader menu" alt="Reader menu" />
+  <img src="screenshots/reader_dark.png" width="30%" title="Dark theme" alt="Dark theme" />
 </p>
+<p align="center"><em>Your library with covers, series and progress · a calm reading page · a dark theme for the evening</em></p>
+
+<p align="center">
+  <img src="screenshots/word_lookup.png" width="45%" title="Phrase lookup" alt="Phrase lookup" />
+  <img src="screenshots/sentence_translation.png" width="45%" title="Sentence translation" alt="Sentence translation" />
+</p>
+<p align="center"><em>Long-press a word: the offline dictionary finds the phrase (<b>just in time</b> → «как раз»), and the whole sentence can be translated on the device</em></p>
+
+<p align="center">
+  <img src="screenshots/pdf_reader.png" width="30%" title="PDF" alt="PDF page" />
+  <img src="screenshots/pdf_contents.png" width="30%" title="PDF contents" alt="PDF contents" />
+  <img src="screenshots/reader_menu.png" width="30%" title="Reader settings" alt="Reader settings" />
+</p>
+<p align="center"><em>A real PDF reader with the document's contents · fonts, spacing and margins per book</em></p>
 
 ## Highlights
 
